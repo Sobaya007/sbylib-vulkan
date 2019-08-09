@@ -1,0 +1,3 @@
+[*]
+dfmt_brace_style = otbs
+dfmt_align_switch_statements = false

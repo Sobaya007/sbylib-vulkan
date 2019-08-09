@@ -1,0 +1,16 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/sbylib-vulkan
+sbylib-vulkan.so
+sbylib-vulkan.dylib
+sbylib-vulkan.dll
+libsbylib-vulkan.a
+sbylib-vulkan.lib
+sbylib-vulkan-test-*
+*.exe
+*.o
+*.obj
+*.lst
+*.spv

@@ -187,6 +187,36 @@ enum PipelineBindPoint {
     RayTracing = VK_PIPELINE_BIND_POINT_RAY_TRACING_NV,
 }
 
+enum PipelineStage {
+    None = 0,
+    TopOfPipe = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+    DrawIndirect = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT,
+    VertexInput = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+    VertexShader
+        = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
+        TessellationControlShader = VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT,
+        TessellationEvaluationShader = VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT,
+        GeometryShader = VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT,
+        FragmentShader = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+        EarlyFragmentTests = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+        LateFragmentTests = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+        ColorAttachmentOutput = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        ComputeShader = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+        Transfer = VK_PIPELINE_STAGE_TRANSFER_BIT,
+        BottomOfPipe = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+        Host = VK_PIPELINE_STAGE_HOST_BIT, AllGraphics = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+        AllCommands = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+        TransformFeedback = VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT,
+        ConditionalRendering = VK_PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT,
+        CommandProcess = VK_PIPELINE_STAGE_COMMAND_PROCESS_BIT_NVX,
+        ShadingRateImage = VK_PIPELINE_STAGE_SHADING_RATE_IMAGE_BIT_NV,
+        RayTracingShader = VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_NV,
+        AccelerationStructureBuild = VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_NV,
+        TaskShader = VK_PIPELINE_STAGE_TASK_SHADER_BIT_NV,
+        MeshShader = VK_PIPELINE_STAGE_MESH_SHADER_BIT_NV,
+        FragmentDensityProcess = VK_PIPELINE_STAGE_FRAGMENT_DENSITY_PROCESS_BIT_EXT,
+}
+
 enum CommandBufferLevel {
     Primary = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
     Secondary = VK_COMMAND_BUFFER_LEVEL_SECONDARY,
@@ -313,4 +343,98 @@ enum DescriptorType {
     InputAttachment = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
     InlineUinformBlock = VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT,
     AccelerationStructure = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV,
+}
+
+enum ImageType {
+    Type1D = VK_IMAGE_TYPE_1D,
+    Type2D = VK_IMAGE_TYPE_2D,
+    Type3D = VK_IMAGE_TYPE_3D,
+}
+
+enum ImageTiling {
+    Optimal = VK_IMAGE_TILING_OPTIMAL,
+    Linear = VK_IMAGE_TILING_LINEAR,
+    DRMFormatModifier = VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT,
+}
+
+enum AccessFlags {
+    IndirectCommandRead = VK_ACCESS_INDIRECT_COMMAND_READ_BIT,
+    IndexRead = VK_ACCESS_INDEX_READ_BIT,
+    VertxAttributeRead
+        = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT, UniformRead = VK_ACCESS_UNIFORM_READ_BIT,
+        InputAttachmentRead = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
+        ShaderRead = VK_ACCESS_SHADER_READ_BIT,
+        ShaderWrite = VK_ACCESS_SHADER_WRITE_BIT,
+        ColorAttachmentRead = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
+        ColorAttachmentWrite = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        DepthStencilAttachmentRead = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT,
+        DepthStencilAttachmentWrite = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+        TransferRead = VK_ACCESS_TRANSFER_READ_BIT,
+        TransferWrite = VK_ACCESS_TRANSFER_WRITE_BIT,
+        HostRead = VK_ACCESS_HOST_READ_BIT,
+        HostWrite = VK_ACCESS_HOST_WRITE_BIT, MemoryRead = VK_ACCESS_MEMORY_READ_BIT,
+        MemoryWrite = VK_ACCESS_MEMORY_WRITE_BIT,
+        TransformFeedbackWrite = VK_ACCESS_TRANSFORM_FEEDBACK_WRITE_BIT_EXT,
+        TransformFeedbackRead = VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_READ_BIT_EXT,
+        TransformFeedbackCounterWrite = VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT,
+        TransformFeedbackCounterRead = VK_ACCESS_CONDITIONAL_RENDERING_READ_BIT_EXT,
+        CommandProcessRead = VK_ACCESS_COMMAND_PROCESS_READ_BIT_NVX,
+        CommandProcessWrite = VK_ACCESS_COMMAND_PROCESS_WRITE_BIT_NVX,
+        ColorAttachmentReadNoncoherent = VK_ACCESS_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT,
+        ShadingRateImageRead = VK_ACCESS_SHADING_RATE_IMAGE_READ_BIT_NV,
+        AccelerationStructureRead = VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_NV,
+        AccelerationStructureWrite = VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_NV,
+        FragmentDensityMapRead = VK_ACCESS_FRAGMENT_DENSITY_MAP_READ_BIT_EXT,
+}
+
+enum SamplerFilter {
+    Nearest = VK_FILTER_NEAREST,
+    Linear = VK_FILTER_LINEAR,
+    Cubic = VK_FILTER_CUBIC_IMG,
+}
+
+enum SamplerMipmapMode {
+    Nearest = VK_SAMPLER_MIPMAP_MODE_NEAREST,
+    Linear = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+}
+
+enum SamplerAddressMode {
+    Repeat = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+    MirroredRepeat = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT,
+    ClampToEdge = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+    ClampToBorder = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+    MirrorClampToEdge = VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE,
+}
+
+enum CompareOp {
+    Never = VK_COMPARE_OP_NEVER,
+    Less = VK_COMPARE_OP_LESS,
+    Equal = VK_COMPARE_OP_EQUAL,
+    LessOrEqual = VK_COMPARE_OP_LESS_OR_EQUAL,
+    Greater = VK_COMPARE_OP_GREATER,
+    NotEqual = VK_COMPARE_OP_NOT_EQUAL,
+    GreaterOrEqual = VK_COMPARE_OP_GREATER_OR_EQUAL,
+    Always = VK_COMPARE_OP_ALWAYS,
+}
+
+enum BorderColor {
+    FloatTransparentBlack = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,
+    IntTransparentBlack = VK_BORDER_COLOR_INT_TRANSPARENT_BLACK,
+    FloatOpaqueBlack = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
+    IntOpaqueBlack = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+    FloatOpaqueWhite = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
+    IntOpaqueWhite = VK_BORDER_COLOR_INT_OPAQUE_WHITE,
+}
+
+enum DependencyFlags {
+    ByRegion = VK_DEPENDENCY_BY_REGION_BIT,
+    DeviceGroup = VK_DEPENDENCY_DEVICE_GROUP_BIT,
+    ViewLocal = VK_DEPENDENCY_VIEW_LOCAL_BIT,
+}
+
+enum IndexType {
+    Uint16 = VK_INDEX_TYPE_UINT16,
+    Uint32 = VK_INDEX_TYPE_UINT32,
+    None = VK_INDEX_TYPE_NONE_NV,
+    Uint8 = VK_INDEX_TYPE_UINT8_EXT,
 }

@@ -78,4 +78,14 @@ class PhysicalDevice {
         vkGetPhysicalDeviceMemoryProperties(physDevice, &memProps);
         return MemoryProperties(memProps);
     }
+
+    uint findQueueFamilyIndex(alias pred)() {
+        import std : countUntil, enforce;
+
+        const queueFamilyProperties = this.getQueueFamilyProperties();
+        auto queueFamilyIndex = queueFamilyProperties.countUntil!(pred);
+        enforce(queueFamilyIndex != -1, "There are no queue family with Graphics support.");
+
+        return cast(uint)queueFamilyIndex;
+    }
 }

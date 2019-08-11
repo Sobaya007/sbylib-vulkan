@@ -6,3 +6,5 @@ license "proprietary"
 
 dependency "sbylib-vulkan" version="*"
 dependency "sbylib-glfw" version="*"
+dependency "sbylib-fi" version="*"
+dependency "sbylib-math" version="*"

@@ -5,6 +5,7 @@ import erupted;
 import sbylib.wrapper.vulkan.enums;
 import sbylib.wrapper.vulkan.device;
 import sbylib.wrapper.vulkan.fence;
+import sbylib.wrapper.vulkan.image;
 import sbylib.wrapper.vulkan.surface;
 import sbylib.wrapper.vulkan.util;
 
@@ -54,7 +55,7 @@ class Swapchain {
 
     mixin VkTo!(VkSwapchainKHR);
 
-    VkImage[] getImages() {
+    Image[] getImages() {
         uint numSwapchainImage;
         vkGetSwapchainImagesKHR(device.device, swapchain, &numSwapchainImage, null);
 
@@ -62,10 +63,17 @@ class Swapchain {
         vkGetSwapchainImagesKHR(device.device, swapchain,
                 &numSwapchainImage, swapchainImages.ptr);
 
-        return swapchainImages;
+        Image[] result = new Image[numSwapchainImage];
+        foreach (i; 0..numSwapchainImage)
+            result[i] = new Image(swapchainImages[i]);
+
+        return result;
     }
 
-    uint acquireNextImageIndex(ulong timeout, VkSemaphore semaphore, Fence fence) {
+    uint acquireNextImageIndex(ulong timeout, VkSemaphore semaphore, Fence fence) 
+        in (device !is null)
+        in (fence !is null)
+    {
         uint imageIndex;
         enforceVK(vkAcquireNextImageKHR(device.device, swapchain, timeout,
                 semaphore, fence.fence, &imageIndex));

@@ -3,27 +3,18 @@ module sbylib.wrapper.vulkan.imageview;
 import erupted;
 import sbylib.wrapper.vulkan.device;
 import sbylib.wrapper.vulkan.enums;
+import sbylib.wrapper.vulkan.image;
 import sbylib.wrapper.vulkan.util;
 
 class ImageView {
     static struct CreateInfo {
-        static struct SubresourceRange {
-            @vkProp() {
-                ImageAspect aspectMask;
-                uint baseMipLevel;
-                uint levelCount;
-                uint baseArrayLayer;
-                uint layerCount;
-            }
-            immutable mixin VkTo!(VkImageSubresourceRange);
-        }
         @vkProp() {
             immutable VkImageViewCreateFlags flags;
-            VkImage image;
+            Image image;
             immutable ImageViewType viewType;
             immutable VkFormat format;
             immutable VkComponentMapping components;
-            immutable SubresourceRange subresourceRange;
+            VkImageSubresourceRange subresourceRange;
         }
 
         mixin VkTo!(VkImageViewCreateInfo);

@@ -70,4 +70,13 @@ class Instance {
 
         return physDevices.map!(dev => new PhysicalDevice(dev)).array;
     }
+
+    PhysicalDevice findPhysicalDevice(alias pred)() {
+        import std : countUntil, enforce;
+
+        auto physDevices = this.enumeratePhysicalDevices();
+        const gpuIndex = physDevices.countUntil!(pred);
+        enforce(gpuIndex != -1, "There are no GPUs with Surface support.");
+        return physDevices[gpuIndex];
+    }
 }

@@ -1,4 +1,4 @@
-version = UniformTriangle;
+version = WhiteTriangle;
 
 version (WhiteTriangle) {
     import whiteTriangle;
@@ -10,6 +10,14 @@ version (PerVertexTriangle) {
 
 version (UniformTriangle) {
     import uniformTriangle;
+}
+
+version (TextureRectangle) {
+    import textureRectangle;
+}
+
+version (Rectangle3D) {
+    import rectangle3d;
 }
 
 void main() {

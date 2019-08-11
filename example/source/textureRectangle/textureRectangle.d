@@ -4,6 +4,7 @@ import erupted.vulkan_lib_loader;
 import sbylib.wrapper.vulkan;
 import sbylib.wrapper.vulkan.util : compileShader;
 import sbylib.wrapper.glfw : GLFW, Window, WindowBuilder, ClientAPI;
+import sbylib.wrapper.freeimage : FImage = Image;
 
 void entryPoint() {
     /*
@@ -52,28 +53,27 @@ void entryPoint() {
        GLFWが要求する拡張機能も有効化する。
 
      */
-    Instance instance;
-    {
-        Instance.CreateInfo instanceCreateInfo = {
-            applicationInfo: {
-                applicationName: "Vulkan Test",
-                applicationVersion: VK_MAKE_VERSION(1,0,0),
-                engineName: "No Engine",
-                engineVersion: VK_MAKE_VERSION(1,0,0),
-                apiVersion : VK_API_VERSION_1_0
-            },
-            enabledLayerNames: [
-                "VK_LAYER_LUNARG_core_validation",
-                "VK_LAYER_LUNARG_standard_validation",
-                "VK_LAYER_LUNARG_parameter_validation",
-                "VK_LAYER_KHRONOS_validation",
-            ],
-            enabledExtensionNames: GLFW.getRequiredInstanceExtensions()
-        };
-        instance = new Instance(instanceCreateInfo);
-        enforce(instanceCreateInfo.enabledLayerNames.all!(n =>
-            LayerProperties.getAvailableInstanceLayerProperties().canFind!(l => l.layerName == n)));
-    }
+    Instance.CreateInfo instanceCreateInfo = {
+        applicationInfo: {
+            applicationName: "Vulkan Test",
+            applicationVersion: VK_MAKE_VERSION(1,0,0),
+            engineName: "No Engine",
+            engineVersion: VK_MAKE_VERSION(1,0,0),
+            apiVersion : VK_API_VERSION_1_0
+        },
+        enabledLayerNames: [
+            "VK_LAYER_LUNARG_core_validation",
+            "VK_LAYER_LUNARG_standard_validation",
+            "VK_LAYER_LUNARG_parameter_validation",
+            "VK_LAYER_KHRONOS_validation",
+        ],
+        enabledExtensionNames: GLFW.getRequiredInstanceExtensions()
+    };
+
+    enforce(instanceCreateInfo.enabledLayerNames.all!(n =>
+        LayerProperties.getAvailableInstanceLayerProperties().canFind!(l => l.layerName == n)));
+
+    auto instance = new Instance(instanceCreateInfo);
     scope (exit)
         instance.destroy();
 
@@ -94,7 +94,10 @@ void entryPoint() {
        GPUはPhysical DeviceとVulkan内では呼ばれている。
        利用可能なGPUの中で、Surface機能をサポートしているものを採用。
      */
-    auto gpu = instance.findPhysicalDevice!((PhysicalDevice gpu) => gpu.getSurfaceSupport(surface));
+    auto physDevices = instance.enumeratePhysicalDevices();
+    const gpuIndex = physDevices.countUntil!(p => p.getSurfaceSupport(surface));
+    enforce(gpuIndex != -1, "There are no GPUs with Surface support.");
+    auto gpu = physDevices[gpuIndex];
 
 
     /*
@@ -108,8 +111,11 @@ void entryPoint() {
        Queueに突っ込む際はその属性をサポートしているQueueに突っ込まなければならない。
        Queue Familyというのは要はこのQueueの種類のことであり、今回はGraphics属性をサポートしているQueueを採用する。
      */
-    auto graphicsQueueFamilyIndex = gpu.findQueueFamilyIndex!(prop =>
-            prop.supports(QueueFamilyProperties.Flags.Graphics));
+    const queueFamilyProperties = gpu.getQueueFamilyProperties();
+    auto graphicsQueueFamilyIndex = cast(uint)queueFamilyProperties
+        .countUntil!((const QueueFamilyProperties prop) =>
+                prop.supports(QueueFamilyProperties.Flags.Graphics));
+    enforce(graphicsQueueFamilyIndex != -1, "There are no queue family with Graphics support.");
 
 
     /*
@@ -152,15 +158,12 @@ void entryPoint() {
             Protectedになると、よくないメモリアクセスでちゃんと怒ってくられるようになるっぽい。
 
      */
-    CommandPool commandPool;
-    {
-        CommandPool.CreateInfo commandPoolCreateInfo = {
-            flags: CommandPool.CreateInfo.Flags.ResetCommandBuffer
-                 | CommandPool.CreateInfo.Flags.Protected,
-            queueFamilyIndex: graphicsQueueFamilyIndex
-        };
-        commandPool = new CommandPool(device, commandPoolCreateInfo);
-    }
+    CommandPool.CreateInfo commandPoolCreateInfo = {
+        flags: CommandPool.CreateInfo.Flags.ResetCommandBuffer
+             | CommandPool.CreateInfo.Flags.Protected,
+        queueFamilyIndex: graphicsQueueFamilyIndex
+    };
+    auto commandPool = new CommandPool(device, commandPoolCreateInfo);
     scope (exit)
         commandPool.destroy();
 
@@ -219,13 +222,15 @@ void entryPoint() {
     scope (exit)
         swapchain.destroy();
 
+    auto swapchainImages = swapchain.getImages();
+
 
     /*
        SwapchainからImageViewを作成
 
        ImageViewとはその名の通り、Swapchain内のImageに対するView(Slice)である。
      */
-    auto swapchainImageViews = swapchain.getImages().map!((Image image) {
+    auto swapchainImageViews = swapchainImages.map!((Image image) {
         ImageView.CreateInfo info = {
             image: image,
             viewType: ImageViewType.Type2D,
@@ -331,39 +336,98 @@ void entryPoint() {
      */
     struct VertexData {
         float[2] pos;
+        float[3] color;
+        float[2] texcoord;
     }
 
-    static VertexData[3] vertices = [
-        VertexData([ 0.0f, -0.5f]),
-        VertexData([+0.5f, +0.5f]),
-        VertexData([-0.5f, +0.5f]),
+    static VertexData[4] vertices = [
+        VertexData([-0.75f, -0.75f], [1.0f, 0.0f, 0.0f], [0.0f, 1.0f]),
+        VertexData([-0.75f, +0.75f], [0.0f, 0.0f, 1.0f], [0.0f, 0.0f]),
+        VertexData([+0.75f, +0.75f], [0.0f, 1.0f, 0.0f], [1.0f, 0.0f]),
+        VertexData([+0.75f, -0.75f], [1.0f, 0.0f, 1.0f], [1.0f, 1.0f]),
     ];
 
+    auto vData = createBuffer(gpu, device, vertices, BufferUsage.VertexBuffer);
 
-    /*
-       Bufferの作成
-
-       今回の用途は当然Vertex Buffer。
-     */
-    Buffer.CreateInfo bufferInfo = {
-        usage: BufferUsage.VertexBuffer,
-        size: vertices.sizeof,
-        sharingMode: SharingMode.Exclusive,
-    };
-    auto buffer = new Buffer(device, bufferInfo);
+    auto vertexBuffer = vData.buffer;
     scope (exit)
-        buffer.destroy();
+        vertexBuffer.destroy();
+
+    auto vertexDeviceMemory = vData.deviceMemory;
+    scope (exit)
+        vertexDeviceMemory.destroy();
 
 
     /*
-       Device Memory確保
+       Uniformデータの作成
 
-       Vertex Buffer用のメモリ確保。
+       これも適当に。
+     */
+    struct UniformData {
+        float time;
+    }
+
+    static UniformData[1] uniforms = [{
+        time: 0
+    }];
+
+    auto uData = createBuffer(gpu, device, uniforms, BufferUsage.UniformBuffer);
+
+    auto uniformBuffer = uData.buffer;
+    scope (exit)
+        uniformBuffer.destroy();
+
+    auto uniformDeviceMemory = uData.deviceMemory;
+    scope (exit)
+        uniformDeviceMemory.destroy();
+    
+
+    /*
+       Textureの読み込み
+     */
+    auto texture = FImage.load(__FILE_FULL_PATH__.dirName.buildPath("dman.png")).to32bit();
+    auto tData = createBuffer(gpu, device, texture.dataArray, BufferUsage.TransferSrc);
+
+    auto textureBuffer = tData.buffer;
+    scope (exit)
+        textureBuffer.destroy();
+
+    auto textureDeviceMemory = tData.deviceMemory;
+    scope (exit)
+        textureDeviceMemory.destroy();
+
+    
+    /*
+       Texture用Imageの作成
+     */
+    Image.CreateInfo imageInfo = {
+        imageType: ImageType.Type2D,
+        extent: {
+            width: texture.width,
+            height: texture.height,
+            depth: 1
+        },
+        mipLevels: 1,
+        arrayLayers: 1,
+        format: VK_FORMAT_R8G8B8A8_UNORM,
+        tiling: ImageTiling.Optimal,
+        initialLayout: ImageLayout.Undefined,
+        usage: ImageUsage.TransferDst | ImageUsage.Sampled,
+        sharingMode: SharingMode.Exclusive,
+        samples: SampleCount.Count1
+    };
+    auto image = new Image(device, imageInfo);
+    scope (exit)
+        image.destroy();
+
+
+    /*
+       Image用Device Memory確保
      */ 
     DeviceMemory.AllocateInfo deviceMemoryAllocInfo = {
-        allocationSize: device.getBufferMemoryRequirements(buffer).size,
+        allocationSize: device.getImageMemoryRequirements(image).size,
         memoryTypeIndex: cast(uint)gpu.getMemoryProperties().memoryTypes
-            .countUntil!(p => p.supports(MemoryProperties.MemoryType.Flags.HostVisible))
+            .countUntil!(p => p.supports(MemoryProperties.MemoryType.Flags.DeviceLocal))
     };
     enforce(deviceMemoryAllocInfo.memoryTypeIndex != -1);
     auto deviceMemory = new DeviceMemory(device, deviceMemoryAllocInfo);
@@ -372,17 +436,139 @@ void entryPoint() {
 
 
     /*
-       Device Memoryへのデータ転送
+       Device MemoryとImageの紐づけ
      */
-    auto mappedMemory = deviceMemory.map(0, bufferInfo.size, 0);
-    mappedMemory[] = (cast(ubyte[])vertices)[];
-    deviceMemory.unmap();
+    deviceMemory.bindImage(image, 0);
 
 
     /*
-       Device MemoryとBufferの紐づけ
+       Image Viewの作成
      */
-    deviceMemory.bindBuffer(buffer, 0);
+    ImageView.CreateInfo imageViewInfo = {
+        image: image,
+        viewType: ImageViewType.Type2D,
+        format: VK_FORMAT_R8G8B8A8_UNORM,
+        subresourceRange: {
+            aspectMask: ImageAspect.Color,
+            baseMipLevel: 0,
+            levelCount: 1,
+            baseArrayLayer: 0,
+            layerCount: 1
+        },
+        components: {
+            r: ComponentSwizzle.B,
+            g: ComponentSwizzle.G,
+            b: ComponentSwizzle.R,
+            a: ComponentSwizzle.A,
+        }
+    };
+    auto imageView = new ImageView(device, imageViewInfo);
+    scope (exit)
+        imageView.destroy();
+
+
+    /*
+       Samplerの作成
+     */
+    Sampler.CreateInfo samplerInfo = {
+        magFilter: SamplerFilter.Linear,
+        minFilter: SamplerFilter.Linear,
+        addressModeU: SamplerAddressMode.Repeat,
+        addressModeV: SamplerAddressMode.Repeat,
+        addressModeW: SamplerAddressMode.Repeat,
+        anisotropyEnable: false,
+        maxAnisotropy: 1,
+        borderColor: BorderColor.IntOpaqueBlack,
+        unnormalizedCoordinates: false,
+        compareEnable: false,
+        compareOp: CompareOp.Always,
+        mipmapMode: SamplerMipmapMode.Linear,
+        mipLodBias: 0.0f,
+        minLod: 0.0f,
+        maxLod: 0.0f
+    };
+    auto sampler = new Sampler(device, samplerInfo);
+    scope (exit)
+        sampler.destroy();
+
+
+    /*
+       Descripter Set Layoutの作成
+
+       Descriptor Set LayoutはPipelineに対して色々な情報を教えるものらしい。
+       今回はUniformBufferとSamplerの情報を教えてあげる。
+       descriptorCountはそのbinding値のオブジェクトを配列として見たときの要素数。
+     */
+    DescriptorSetLayout.CreateInfo descriptorSetLayoutInfo = {
+        bindings: [{
+            binding: 0,
+            descriptorType: DescriptorType.UniformBuffer,
+            descriptorCount: 1,
+            stageFlags: ShaderStage.Fragment
+        },{
+            binding: 1,
+            descriptorType: DescriptorType.CombinedImageSampler,
+            descriptorCount: 1,
+            stageFlags: ShaderStage.Fragment
+        }]
+    };
+    auto descriptorSetLayout = new DescriptorSetLayout(device, descriptorSetLayoutInfo);
+    scope (exit)
+        descriptorSetLayout.destroy();
+
+
+    /*
+       Descriptor Pool作成
+     */
+    DescriptorPool.CreateInfo descriptorPoolInfo = {
+        poolSizes: [{
+            type: DescriptorType.UniformBuffer,
+            descriptorCount: 1
+        }, {
+            type: DescriptorType.CombinedImageSampler,
+            descriptorCount: 1
+        }],
+        maxSets: 1
+    };
+    auto descriptorPool = new DescriptorPool(device, descriptorPoolInfo);
+    scope (exit)
+        descriptorPool.destroy();
+
+
+    /*
+       Descriptor Setの確保
+
+       Descriptor Setは色々なデータ(Image, Buffer, BufferView)に対するBindの方法を指定する物体。
+     */
+    DescriptorSet.AllocateInfo descriptorSetAllocInfo = {
+        descriptorPool: descriptorPool,
+        setLayouts: [descriptorSetLayout]
+    };
+    auto descriptorSet = DescriptorSet.allocate(device, descriptorSetAllocInfo)[0];
+
+    DescriptorSet.Write[2] writes = [{
+        dstSet: descriptorSet,
+        dstBinding: 0,
+        dstArrayElement: 0,
+        descriptorType: DescriptorType.UniformBuffer,
+        bufferInfo: [{
+            buffer: uniformBuffer,
+            offset: 0,
+            range: UniformData.sizeof
+        }]
+    }, {
+        dstSet: descriptorSet,
+        dstBinding: 1,
+        dstArrayElement: 0,
+        descriptorType: DescriptorType.CombinedImageSampler,
+        imageInfo: [{
+            imageLayout: ImageLayout.ShaderReadOnlyOptimal,
+            imageView: imageView,
+            sampler: sampler
+        }]
+    }];
+    DescriptorSet.Copy[0] copies;
+    descriptorSet.update(writes, copies);
 
 
     /*
@@ -410,9 +596,11 @@ void entryPoint() {
        PipelineLayout作成
 
        Pipelineが使う資源のレイアウトに関する情報らしい。
-       今回は虚無。
+       今回はUniform Bufferに関する情報を書く。
      */
-    PipelineLayout.CreateInfo pipelineLayoutCreateInfo;
+    PipelineLayout.CreateInfo pipelineLayoutCreateInfo = {
+        setLayouts: [descriptorSetLayout]
+    };
     auto pipelineLayout = new PipelineLayout(device, pipelineLayoutCreateInfo);
     scope (exit)
         pipelineLayout.destroy();
@@ -437,18 +625,28 @@ void entryPoint() {
         vertexInputState: {
             vertexBindingDescriptions: [{
                 binding: 0,
-                stride: (float[2]).sizeof,
+                stride: VertexData.sizeof,
                 inputRate: VertexInputRate.Vertex
             }],
             vertexAttributeDescriptions: [{
                 location: 0,
                 binding: 0,
                 format: VK_FORMAT_R32G32_SFLOAT,
-                offset: 0
+                offset: VertexData.pos.offsetof
+            },{
+                location: 1,
+                binding: 0,
+                format: VK_FORMAT_R32G32B32_SFLOAT,
+                offset: VertexData.color.offsetof
+            },{
+                location: 2,
+                binding: 0,
+                format: VK_FORMAT_R32G32_SFLOAT,
+                offset: VertexData.texcoord.offsetof
             }]
         },
         inputAssemblyState: {
-            topology: PrimitiveTopology.TriangleList,
+            topology: PrimitiveTopology.TriangleFan,
         },
         viewportState: {
             viewports: [{
@@ -491,7 +689,10 @@ void entryPoint() {
         colorBlendState: {
             logicOpEnable: false,
             attachments: [{
-                blendEnable: false,
+                blendEnable: true,
+                srcColorBlendFactor: BlendFactor.SrcAlpha,
+                dstColorBlendFactor: BlendFactor.OneMinusSrcAlpha,
+                colorBlendOp: BlendOp.Add,
                 colorWriteMask: ColorComponent.R
                               | ColorComponent.G
                               | ColorComponent.B
@@ -530,6 +731,78 @@ void entryPoint() {
     Fence.reset([fence]);
 
 
+    /*
+       Imageのデータ転送
+     */
+    {
+        CommandBuffer.BeginInfo beginInfo = {
+            flags: CommandBuffer.BeginInfo.Flags.OneTimeSubmit
+        };
+        commandBuffer.begin(beginInfo);
+
+        VkImageMemoryBarrier barrier = {
+            dstAccessMask: AccessFlags.TransferWrite,
+            oldLayout: ImageLayout.Undefined,
+            newLayout: ImageLayout.TransferDstOptimal,
+            image: image.image,
+            subresourceRange: {
+                aspectMask: ImageAspect.Color,
+                baseMipLevel: 0,
+                levelCount: 1,
+                baseArrayLayer: 0,
+                layerCount: 1
+            }
+        };
+        commandBuffer.cmdPipelineBarrier(PipelineStage.TopOfPipe, PipelineStage.Transfer, 0, null, null, [barrier]);
+
+        VkBufferImageCopy bufferImageCopy = {
+            bufferOffset: 0,
+            bufferRowLength: 0,
+            bufferImageHeight: 0,
+            imageSubresource: {
+                aspectMask: ImageAspect.Color,
+                mipLevel: 0,
+                baseArrayLayer: 0,
+                layerCount: 1,
+            },
+            imageOffset: {
+                x: 0,
+                y: 0,
+                z: 0,
+            },
+            imageExtent: {
+                width: texture.width,
+                height: texture.height,
+                depth: 1
+            }
+        };
+        commandBuffer.cmdCopyBufferToImage(textureBuffer, image, ImageLayout.TransferDstOptimal, [bufferImageCopy]);
+
+        VkImageMemoryBarrier barrier2 = {
+            oldLayout: ImageLayout.TransferDstOptimal,
+            newLayout: ImageLayout.ShaderReadOnlyOptimal,
+            image: image.image,
+            subresourceRange: {
+                aspectMask: ImageAspect.Color,
+                baseMipLevel: 0,
+                levelCount: 1,
+                baseArrayLayer: 0,
+                layerCount: 1
+            }
+        };
+        commandBuffer.cmdPipelineBarrier(PipelineStage.Transfer, PipelineStage.FragmentShader, 0, null, null, [barrier2]);
+        
+        commandBuffer.end();
+
+        Queue.SubmitInfo submitInfo = {
+            commandBuffers: [commandBuffer]
+        };
+        queue.submit([submitInfo], fence);
+        Fence.wait([fence], true, ulong.max);
+        Fence.reset([fence]);
+    }
+
+
     while (window.shouldClose is false) {
         auto framebuffer = framebuffers[currentImageIndex];
 
@@ -541,7 +814,8 @@ void entryPoint() {
            RenderPassの実行は
             1. PipelineのBind (OpenGLでいうusePipeline)
             2. Vertex BufferのBind (OpenGLでいうbindBuffer)
-            3. Draw call (OpenGLでいうdrawArrays)
+            3. Uniform BufferのBind (OpenGLでいうglUniform)
+            4. Draw call (OpenGLでいうdrawArrays)
            となっている。
          */
         CommandBuffer.BeginInfo beginInfo;
@@ -555,14 +829,16 @@ void entryPoint() {
             },
             clearValues: [{
                 color: {
-                    float32: [0.0f, 0.0f, 0.0f, 1.0f]
+                    float32: [0.5f, 0.5f, 0.5f, 1.0f]
                 }
             }]
         };
         commandBuffer.cmdBeginRenderPass(renderPassBeginInfo, SubpassContents.Inline);
         commandBuffer.cmdBindPipeline(PipelineBindPoint.Graphics, pipeline);
-        commandBuffer.cmdBindVertexBuffers(0, [buffer], [0]);
-        commandBuffer.cmdDraw(3, 1, 0, 0);
+        commandBuffer.cmdBindVertexBuffers(0, [vertexBuffer], [0]);
+        commandBuffer.cmdBindDescriptorSets(PipelineBindPoint.Graphics, pipelineLayout,
+                0, [descriptorSet]);
+        commandBuffer.cmdDraw(vertices.length, 1, 0, 0);
         commandBuffer.cmdEndRenderPass();
         commandBuffer.end();
 
@@ -597,10 +873,64 @@ void entryPoint() {
         Fence.wait([fence], true, ulong.max);
         Fence.reset([fence]);
 
+        /*
+           Uniformの更新
+         */
+        auto uniformData = cast(UniformData[])uniformDeviceMemory.map(0, uniforms.sizeof, 0);
+        uniformData[0].time += 0.05f;
+        uniformDeviceMemory.unmap();
+
 
         /*
            GLFWのEvent Polling
          */
         GLFW.pollEvents();
     }
+}
+
+auto createBuffer(Data)(PhysicalDevice gpu, Device device, Data[] data, BufferUsage usage) {
+    /*
+       Bufferの作成
+     */
+    Buffer.CreateInfo bufferInfo = {
+        usage: usage,
+        size: Data.sizeof * data.length,
+        sharingMode: SharingMode.Exclusive,
+    };
+    auto buffer = new Buffer(device, bufferInfo);
+
+
+    /*
+       Device Memory確保
+
+       Buffer用のメモリ確保。
+     */ 
+    DeviceMemory.AllocateInfo deviceMemoryAllocInfo = {
+        allocationSize: device.getBufferMemoryRequirements(buffer).size,
+        memoryTypeIndex: cast(uint)gpu.getMemoryProperties().memoryTypes
+            .countUntil!(p => p.supports(MemoryProperties.MemoryType.Flags.HostVisible))
+    };
+    enforce(deviceMemoryAllocInfo.memoryTypeIndex != -1);
+    auto deviceMemory = new DeviceMemory(device, deviceMemoryAllocInfo);
+
+
+    /*
+       Device Memoryへのデータ転送
+     */
+    auto memory = deviceMemory.map(0, bufferInfo.size, 0);
+    memory[] = (cast(ubyte[])data)[];
+    deviceMemory.unmap();
+
+
+    /*
+       Device MemoryとBufferの紐づけ
+     */
+    deviceMemory.bindBuffer(buffer, 0);
+
+    struct Result {
+        Buffer buffer;
+        DeviceMemory deviceMemory;
+    }
+
+    return Result(buffer, deviceMemory);
 }

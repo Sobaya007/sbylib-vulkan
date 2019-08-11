@@ -44,4 +44,18 @@ class Fence {
             fences[i] = _fences[i].fence;
         enforceVK(vkResetFences(_fences[0].device.device, N, fences.ptr));
     }
+
+    static void wait(Fence[] _fences, bool waitAll, ulong timeout) {
+        VkFence[256] fences;
+        foreach (i; 0.._fences.length)
+            fences[i] = _fences[i].fence;
+        enforceVK(vkWaitForFences(_fences[0].device.device, cast(uint)_fences.length, fences.ptr, waitAll, timeout));
+    }
+
+    static void reset(Fence[] _fences) {
+        VkFence[256] fences;
+        foreach (i; 0.._fences.length)
+            fences[i] = _fences[i].fence;
+        enforceVK(vkResetFences(_fences[0].device.device, cast(uint)_fences.length, fences.ptr));
+    }
 }

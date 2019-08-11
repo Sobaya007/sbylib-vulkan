@@ -8,6 +8,7 @@ import sbylib.wrapper.vulkan.descriptorset;
 import sbylib.wrapper.vulkan.device;
 import sbylib.wrapper.vulkan.enums;
 import sbylib.wrapper.vulkan.framebuffer;
+import sbylib.wrapper.vulkan.image;
 import sbylib.wrapper.vulkan.renderpass;
 import sbylib.wrapper.vulkan.pipeline;
 import sbylib.wrapper.vulkan.pipelinelayout;
@@ -26,11 +27,17 @@ class CommandBuffer {
 
     static struct BeginInfo {
         @vkProp() {
-            immutable VkCommandBufferUsageFlags flags;
+            immutable BitFlags!Flags flags;
         }
 
         @vkProp("pInheritanceInfo") {
             InheritanceInfo inheritanceInfo;
+        }
+
+        enum Flags {
+            OneTimeSubmit = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+            RenderPassContinue = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT,
+            SimultaneousUse = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT,
         }
 
         mixin VkTo!(VkCommandBufferBeginInfo);
@@ -100,8 +107,8 @@ class CommandBuffer {
         enforceVK(vkEndCommandBuffer(commandBuffer));
     }
 
-    void cmdPipelineBarrier(VkPipelineStageFlags srcStageMask,
-            VkPipelineStageFlags dstStageMask, VkDependencyFlags dependencyFlags,
+    void cmdPipelineBarrier(PipelineStage srcStageMask,
+            PipelineStage dstStageMask, VkDependencyFlags dependencyFlags,
             VkMemoryBarrier[] memoryBarriers, VkBufferMemoryBarrier[] bufferMemoryBarriers,
             VkImageMemoryBarrier[] imageMemoryBarriers) {
 
@@ -141,6 +148,10 @@ class CommandBuffer {
         vkCmdBindVertexBuffers(commandBuffer, firstBinding, N, buffers.ptr, offsets.ptr);
     }
 
+    void cmdBindIndexBuffer(Buffer buffer,VkDeviceSize offset, IndexType indexType) {
+        vkCmdBindIndexBuffer(commandBuffer, buffer.buffer, offset, indexType);
+    }
+
     void cmdBindDescriptorSets(uint N, uint M)(PipelineBindPoint pipelineBindPoint, PipelineLayout layout,
             uint firstSet, const DescriptorSet[N] _descriptorSets, const uint[M] dynamicOffsets) {
         VkDescriptorSet[N] descriptorSets;
@@ -160,5 +171,37 @@ class CommandBuffer {
 
     void cmdDraw(uint vertexCount, uint instanceCount, uint firstVertex, uint firstInstance) {
         vkCmdDraw(commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
+    }
+
+    void cmdDrawIndexed(uint indexCount, uint instanceCount, uint firstIndex, int vertexOffset, uint firstInstance) {
+        vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
+    }
+
+    void cmdDispatch(uint groupCountX, uint groupCountY, uint groupCountZ) {
+        vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
+    }
+
+    void cmdCopyBuffer(Buffer src, Buffer dst, const VkBufferCopy[] regions) {
+        vkCmdCopyBuffer(commandBuffer, src.buffer, dst.buffer, cast(uint)regions.length, regions.ptr);
+    }
+
+    void cmdCopyBufferToImage(uint N)(Buffer src, Image dst, ImageLayout layout, const VkBufferImageCopy[N] regions) {
+        vkCmdCopyBufferToImage(commandBuffer, src.buffer, dst.image, layout, N, regions.ptr);
+    }
+
+    void cmdBlitImage(uint N)(Image srcImage, ImageLayout srcImageLayout, Image dstImage, ImageLayout dstImageLayout, VkImageBlit[N] regions, SamplerFilter filter) {
+        vkCmdBlitImage(commandBuffer, srcImage.image, srcImageLayout, dstImage.image, dstImageLayout, N, regions.ptr, filter);
+    }
+
+    void cmdClearAttachments(uint N, uint M)(const VkClearAttachment[N] attachments, const VkClearRect[M] rects) {
+        vkCmdClearAttachments(commandBuffer, N, attachments.ptr, M, rects.ptr);
+    }
+
+    void cmdExecuteCommands(uint N)(CommandBuffer[N] _commandBuffers) {
+        VkCommandBuffer[N] commandBuffers;
+        static foreach (i; 0..N) {
+            commandBuffers[i] = _commandBuffers[i].vkTo();
+        }
+        vkCmdExecuteCommands(commandBuffer, N, commandBuffers.ptr);
     }
 }

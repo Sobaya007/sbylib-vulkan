@@ -3,7 +3,7 @@ import erupted;
 import erupted.vulkan_lib_loader;
 import sbylib.wrapper.vulkan;
 import sbylib.wrapper.vulkan.util : compileShader;
-import sbylib.wrapper.glfw;
+import sbylib.wrapper.glfw : GLFW, Window, WindowBuilder, ClientAPI;
 
 void entryPoint() {
     /*
@@ -229,7 +229,7 @@ void entryPoint() {
 
        ImageViewとはその名の通り、Swapchain内のImageに対するView(Slice)である。
      */
-    auto swapchainImageViews = swapchainImages.map!((VkImage image) {
+    auto swapchainImageViews = swapchainImages.map!((Image image) {
         ImageView.CreateInfo info = {
             image: image,
             viewType: ImageViewType.Type2D,

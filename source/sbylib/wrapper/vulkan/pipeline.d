@@ -149,7 +149,7 @@ class Pipeline {
         const mixin VkTo!(VkPipelineDynamicStateCreateInfo);
     }
 
-    static struct CreateInfo {
+    static struct GraphicsCreateInfo {
         @vkProp() {
             immutable VkPipelineCreateFlags flags;
             PipelineLayout layout;
@@ -202,6 +202,18 @@ class Pipeline {
         mixin VkTo!(VkGraphicsPipelineCreateInfo);
     }
 
+    static struct ComputeCreateInfo {
+        @vkProp() {
+            VkPipelineCreateFlags flags;
+            ShaderStageCreateInfo stage;
+            PipelineLayout layout;
+            Pipeline basePipelineHandle;
+            int basePipelineIndex;
+        }
+
+        mixin VkTo!(VkComputePipelineCreateInfo);
+    }
+
     private Device device;
     package VkPipeline pipeline;
 
@@ -216,12 +228,23 @@ class Pipeline {
 
     mixin VkTo!(VkPipeline);
 
-    static Pipeline[] create(Device device, CreateInfo[] _infos) {
+    static Pipeline[] create(Device device, GraphicsCreateInfo[] _infos) {
 
         auto infos = _infos.map!(i => i.vkTo()).array;
         VkPipeline[] pipelines = new VkPipeline[_infos.length];
 
         enforceVK(vkCreateGraphicsPipelines(device.device, null  /*pipeline cache */ ,
+                cast(uint) infos.length, infos.ptr, null, pipelines.ptr));
+
+        return pipelines.map!(p => new Pipeline(device, p)).array;
+    }
+
+    static Pipeline[] create(Device device, ComputeCreateInfo[] _infos) {
+
+        auto infos = _infos.map!(i => i.vkTo()).array;
+        VkPipeline[] pipelines = new VkPipeline[_infos.length];
+
+        enforceVK(vkCreateComputePipelines(device.device, null  /*pipeline cache */ ,
                 cast(uint) infos.length, infos.ptr, null, pipelines.ptr));
 
         return pipelines.map!(p => new Pipeline(device, p)).array;

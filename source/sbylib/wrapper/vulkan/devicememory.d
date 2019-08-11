@@ -3,6 +3,7 @@ module sbylib.wrapper.vulkan.devicememory;
 import erupted;
 import sbylib.wrapper.vulkan.buffer;
 import sbylib.wrapper.vulkan.device;
+import sbylib.wrapper.vulkan.image;
 import sbylib.wrapper.vulkan.util;
 
 class DeviceMemory {
@@ -43,5 +44,9 @@ class DeviceMemory {
 
     void bindBuffer(Buffer buffer, VkDeviceSize memoryOffset) {
         enforceVK(vkBindBufferMemory(device.device, buffer.buffer, deviceMemory, memoryOffset));
+    }
+
+    void bindImage(Image image, VkDeviceSize memoryOffset) {
+        enforceVK(vkBindImageMemory(device.device, image.image, deviceMemory, memoryOffset));
     }
 }

@@ -8,6 +8,7 @@ import sbylib.wrapper.vulkan.descriptorsetlayout;
 import sbylib.wrapper.vulkan.device;
 import sbylib.wrapper.vulkan.enums;
 import sbylib.wrapper.vulkan.imageview;
+import sbylib.wrapper.vulkan.sampler;
 import sbylib.wrapper.vulkan.util;
 
 class DescriptorSet {
@@ -26,7 +27,7 @@ class DescriptorSet {
     static struct Write {
         static struct ImageInfo {
             @vkProp() {
-                VkSampler sampler;
+                Sampler sampler;
                 ImageView imageView;
                 ImageLayout imageLayout;
             }
@@ -108,7 +109,7 @@ class DescriptorSet {
             writes[i] = _writes[i].vkTo();
         }
 
-        VkCopyDescriptorSet[W] copies;
+        VkCopyDescriptorSet[C] copies;
         static foreach (i; 0..C) {
             copies[i] = _copies[i].vkTo();
         }

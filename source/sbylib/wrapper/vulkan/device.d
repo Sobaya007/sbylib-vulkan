@@ -4,6 +4,7 @@ import erupted;
 import sbylib.wrapper.vulkan.buffer;
 import sbylib.wrapper.vulkan.physicaldevice;
 import sbylib.wrapper.vulkan.queue;
+import sbylib.wrapper.vulkan.image;
 import sbylib.wrapper.vulkan.util;
 
 class Device {
@@ -65,6 +66,12 @@ class Device {
     VkMemoryRequirements getBufferMemoryRequirements(Buffer buffer) {
         VkMemoryRequirements memreq;
         vkGetBufferMemoryRequirements(device, buffer.buffer, &memreq);
+        return memreq;
+    }
+
+    VkMemoryRequirements getImageMemoryRequirements(Image image) {
+        VkMemoryRequirements memreq;
+        vkGetImageMemoryRequirements(device, image.image, &memreq);
         return memreq;
     }
 }

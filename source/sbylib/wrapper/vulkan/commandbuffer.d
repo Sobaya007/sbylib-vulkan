@@ -4,11 +4,13 @@ import std;
 import erupted;
 import sbylib.wrapper.vulkan.buffer;
 import sbylib.wrapper.vulkan.commandpool;
+import sbylib.wrapper.vulkan.descriptorset;
 import sbylib.wrapper.vulkan.device;
 import sbylib.wrapper.vulkan.enums;
 import sbylib.wrapper.vulkan.framebuffer;
 import sbylib.wrapper.vulkan.renderpass;
 import sbylib.wrapper.vulkan.pipeline;
+import sbylib.wrapper.vulkan.pipelinelayout;
 import sbylib.wrapper.vulkan.util;
 
 class CommandBuffer {
@@ -137,6 +139,23 @@ class CommandBuffer {
             buffers[i] = _buffers[i].buffer;
 
         vkCmdBindVertexBuffers(commandBuffer, firstBinding, N, buffers.ptr, offsets.ptr);
+    }
+
+    void cmdBindDescriptorSets(uint N, uint M)(PipelineBindPoint pipelineBindPoint, PipelineLayout layout,
+            uint firstSet, const DescriptorSet[N] _descriptorSets, const uint[M] dynamicOffsets) {
+        VkDescriptorSet[N] descriptorSets;
+        static foreach (i; 0..N)
+            descriptorSets[i] = cast(VkDescriptorSet)_descriptorSets[i].vkTo();
+
+        vkCmdBindDescriptorSets(commandBuffer, pipelineBindPoint, layout.pipelineLayout, firstSet,
+                cast(uint) descriptorSets.length, descriptorSets.ptr,
+                cast(uint) dynamicOffsets.length, dynamicOffsets.ptr);
+    }
+
+    void cmdBindDescriptorSets(uint N)(PipelineBindPoint pipelineBindPoint, PipelineLayout layout,
+            uint firstSet, const DescriptorSet[N] _descriptorSets) {
+        uint[0] dummy;
+        cmdBindDescriptorSets(pipelineBindPoint, layout, firstSet, _descriptorSets, dummy);
     }
 
     void cmdDraw(uint vertexCount, uint instanceCount, uint firstVertex, uint firstInstance) {

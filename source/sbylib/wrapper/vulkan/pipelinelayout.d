@@ -1,6 +1,7 @@
 module sbylib.wrapper.vulkan.pipelinelayout;
 
 import erupted;
+import sbylib.wrapper.vulkan.descriptorsetlayout;
 import sbylib.wrapper.vulkan.device;
 import sbylib.wrapper.vulkan.util;
 
@@ -11,7 +12,7 @@ class PipelineLayout {
         }
 
         @vkProp("pSetLayouts", "setLayoutCount") {
-            const VkDescriptorSetLayout[] setLayouts;
+            const DescriptorSetLayout[] setLayouts;
         }
 
         @vkProp("pPushConstantRanges", "pushConstantRangeCount") {

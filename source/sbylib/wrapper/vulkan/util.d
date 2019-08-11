@@ -227,7 +227,10 @@ mixin template VkTo(OriginalType) {
 
                         auto tmp = destruct!(Dst, Length)(mixin("this.", name));
                         mixin("orig.", names[0]) = tmp[0];
-                        mixin("orig.", names[1]) = tmp[1];
+
+                        if (tmp[1] > 0 && mixin("orig.", names[1]) == 0) {
+                            mixin("orig.", names[1]) = tmp[1]; // for avoiding double assignment
+                        }
                     } else static if (names.length == 1) {
                         alias Dst = typeof(mixin("orig.", names[0]));
                         static if (isDynamicArray!(Src) && isPointer!(Dst)) {

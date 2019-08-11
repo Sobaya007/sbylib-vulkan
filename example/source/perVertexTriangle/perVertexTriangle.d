@@ -368,7 +368,7 @@ void entryPoint() {
     DeviceMemory.AllocateInfo deviceMemoryAllocInfo = {
         allocationSize: device.getBufferMemoryRequirements(buffer).size,
         memoryTypeIndex: cast(uint)gpu.getMemoryProperties().memoryTypes
-            .countUntil!(p => (p.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0)
+            .countUntil!(p => p.supports(MemoryProperties.MemoryType.Flags.HostVisible))
     };
     enforce(deviceMemoryAllocInfo.memoryTypeIndex != -1);
     auto deviceMemory = new DeviceMemory(device, deviceMemoryAllocInfo);

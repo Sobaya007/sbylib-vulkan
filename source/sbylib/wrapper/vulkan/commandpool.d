@@ -7,11 +7,9 @@ import sbylib.wrapper.vulkan.util;
 
 class CommandPool {
     static struct CreateInfo {
-        @vkProp("flags") {
-            immutable BitFlags!(Flags) flags;
-        }
         @vkProp() {
             immutable uint queueFamilyIndex;
+            immutable BitFlags!(Flags) flags;
         }
 
         enum Flags {

@@ -1,4 +1,4 @@
-version = WhiteTriangle;
+version = UniformTriangle;
 
 version (WhiteTriangle) {
     import whiteTriangle;
@@ -6,6 +6,10 @@ version (WhiteTriangle) {
 
 version (PerVertexTriangle) {
     import perVertexTriangle;
+}
+
+version (UniformTriangle) {
+    import uniformTriangle;
 }
 
 void main() {

@@ -89,6 +89,8 @@ class RenderPass {
     private Device device;
     private VkRenderPass renderPass;
 
+    mixin ImplNameSetter!(device, renderPass, DebugReportObjectType.RenderPass);
+
     this(Device device, CreateInfo _info) {
         import std.exception : enforce;
 

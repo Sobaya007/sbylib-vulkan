@@ -3,6 +3,7 @@ module sbylib.wrapper.vulkan.devicememory;
 import erupted;
 import sbylib.wrapper.vulkan.buffer;
 import sbylib.wrapper.vulkan.device;
+import sbylib.wrapper.vulkan.enums;
 import sbylib.wrapper.vulkan.image;
 import sbylib.wrapper.vulkan.util;
 
@@ -18,6 +19,8 @@ class DeviceMemory {
 
     private Device device;
     private VkDeviceMemory deviceMemory;
+
+    mixin ImplNameSetter!(device, deviceMemory, DebugReportObjectType.DeviceMemory);
 
     this(Device device, AllocateInfo _info) {
         this.device = device;

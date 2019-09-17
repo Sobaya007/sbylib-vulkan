@@ -3,6 +3,7 @@ module sbylib.wrapper.vulkan.commandpool;
 import std;
 import erupted;
 import sbylib.wrapper.vulkan.device;
+import sbylib.wrapper.vulkan.enums;
 import sbylib.wrapper.vulkan.util;
 
 class CommandPool {
@@ -23,6 +24,8 @@ class CommandPool {
 
     private Device device;
     package VkCommandPool commandPool;
+
+    mixin ImplNameSetter!(device, commandPool, DebugReportObjectType.CommandPool);
 
     this(Device device, CreateInfo _info) {
         import std.exception : enforce;

@@ -1,6 +1,7 @@
 module sbylib.wrapper.vulkan.layerproperties;
 
 import erupted;
+import sbylib.wrapper.vulkan.physicaldevice;
 import sbylib.wrapper.vulkan.util;
 
 struct LayerProperties {
@@ -18,11 +19,24 @@ struct LayerProperties {
         import std : map, array;
         import erupted : vkEnumerateInstanceLayerProperties;
 
-        uint numInstanceLayers;
-        vkEnumerateInstanceLayerProperties(&numInstanceLayers, null);
+        uint numLayers;
+        vkEnumerateInstanceLayerProperties(&numLayers, null);
 
-        VkLayerProperties[] result = new VkLayerProperties[numInstanceLayers];
-        vkEnumerateInstanceLayerProperties(&numInstanceLayers, result.ptr);
+        VkLayerProperties[] result = new VkLayerProperties[numLayers];
+        vkEnumerateInstanceLayerProperties(&numLayers, result.ptr);
+
+        return result.map!(p => LayerProperties(p)).array;
+    }
+
+    static getAvailableDeviceLayerProperties(PhysicalDevice gpu) {
+        import std : map, array;
+        import erupted : vkEnumerateDeviceLayerProperties;
+
+        uint numLayers;
+        vkEnumerateDeviceLayerProperties(gpu.physDevice, &numLayers, null);
+
+        VkLayerProperties[] result = new VkLayerProperties[numLayers];
+        vkEnumerateDeviceLayerProperties(gpu.physDevice, &numLayers, result.ptr);
 
         return result.map!(p => LayerProperties(p)).array;
     }

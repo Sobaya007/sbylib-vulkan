@@ -217,6 +217,8 @@ class Pipeline {
     private Device device;
     package VkPipeline pipeline;
 
+    mixin ImplNameSetter!(device, pipeline, DebugReportObjectType.Pipeline);
+
     this(Device device, VkPipeline pipeline) {
         this.device = device;
         this.pipeline = pipeline;

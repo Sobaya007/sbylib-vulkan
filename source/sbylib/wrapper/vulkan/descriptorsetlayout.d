@@ -35,6 +35,8 @@ class DescriptorSetLayout {
     private Device device;
     package VkDescriptorSetLayout descriptorSetLayout;
 
+    mixin ImplNameSetter!(device, descriptorSetLayout, DebugReportObjectType.DescriptorSetLayout);
+
     this(Device device, CreateInfo _info) {
         import std.exception : enforce;
 

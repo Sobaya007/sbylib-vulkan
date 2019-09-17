@@ -30,8 +30,10 @@ class Image {
     }
 
     private Device device;
-    VkImage image;
+    public VkImage image;
     private bool mustRelease;
+
+    mixin ImplNameSetter!(device, image, DebugReportObjectType.Image);
 
     this(Device device, CreateInfo _info) {
         this.device = device;

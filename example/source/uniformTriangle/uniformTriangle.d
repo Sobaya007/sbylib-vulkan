@@ -482,7 +482,7 @@ void entryPoint() {
        Pipelineとは、その名の通り描画パイプラインそのもの。
        設定自体は長いが、全部自明。
      */
-    Pipeline.CreateInfo pipelineCreateInfo = {
+    Pipeline.GraphicsCreateInfo pipelineCreateInfo = {
         stages: [{
             stage: ShaderStage.Vertex,
             _module: vsMod,

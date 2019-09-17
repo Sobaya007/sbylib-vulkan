@@ -33,6 +33,8 @@ class DescriptorPool {
     private Device device;
     package VkDescriptorPool descriptorPool;
 
+    mixin ImplNameSetter!(device, descriptorPool, DebugReportObjectType.DescriptorPool);
+
     this(Device device, CreateInfo _info) {
         import std.exception : enforce;
 

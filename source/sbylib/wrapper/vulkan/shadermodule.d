@@ -2,6 +2,7 @@ module sbylib.wrapper.vulkan.shadermodule;
 
 import erupted;
 import sbylib.wrapper.vulkan.device;
+import sbylib.wrapper.vulkan.enums;
 import sbylib.wrapper.vulkan.util;
 
 class ShaderModule {
@@ -19,6 +20,8 @@ class ShaderModule {
 
     private Device device;
     package VkShaderModule shaderModule;
+
+    mixin ImplNameSetter!(device, shaderModule, DebugReportObjectType.ShaderModule);
 
     this(Device device, CreateInfo _info) {
         import std.exception : enforce;

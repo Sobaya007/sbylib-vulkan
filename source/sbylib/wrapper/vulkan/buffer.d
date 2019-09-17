@@ -28,6 +28,8 @@ class Buffer {
     private Device device;
     package VkBuffer buffer;
 
+    mixin ImplNameSetter!(device, buffer, DebugReportObjectType.Buffer);
+
     this(Device device, CreateInfo _info) {
         import std.exception : enforce;
 

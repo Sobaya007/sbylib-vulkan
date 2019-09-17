@@ -83,6 +83,8 @@ class DescriptorSet {
     private DescriptorPool descriptorPool;
     private VkDescriptorSet descriptorSet;
 
+    mixin ImplNameSetter!(device, descriptorSet, DebugReportObjectType.DescriptorSet);
+
     private this(Device device, DescriptorPool descriptorPool, VkDescriptorSet descriptorSet) {
         import std.exception : enforce;
 

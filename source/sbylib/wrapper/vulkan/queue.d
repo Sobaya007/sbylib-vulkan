@@ -2,6 +2,8 @@ module sbylib.wrapper.vulkan.queue;
 
 import erupted;
 import sbylib.wrapper.vulkan.commandbuffer;
+import sbylib.wrapper.vulkan.device;
+import sbylib.wrapper.vulkan.enums;
 import sbylib.wrapper.vulkan.fence;
 import sbylib.wrapper.vulkan.swapchain;
 import sbylib.wrapper.vulkan.util;
@@ -51,9 +53,13 @@ class Queue {
         mixin VkTo!(VkPresentInfoKHR);
     }
 
+    private Device device;
     package VkQueue queue;
 
-    this(VkQueue queue) {
+    mixin ImplNameSetter!(device, queue, DebugReportObjectType.Queue);
+
+    package this(Device device, VkQueue queue) {
+        this.device = device;
         this.queue = queue;
     }
 

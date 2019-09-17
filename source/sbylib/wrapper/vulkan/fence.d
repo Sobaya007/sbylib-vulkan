@@ -2,6 +2,7 @@ module sbylib.wrapper.vulkan.fence;
 
 import erupted;
 import sbylib.wrapper.vulkan.device;
+import sbylib.wrapper.vulkan.enums;
 import sbylib.wrapper.vulkan.util;
 
 class Fence {
@@ -15,6 +16,8 @@ class Fence {
 
     private Device device;
     package VkFence fence;
+
+    mixin ImplNameSetter!(device, fence, DebugReportObjectType.Fence);
 
     this(Device device, CreateInfo _info) {
         import std.exception : enforce;

@@ -34,6 +34,8 @@ class Sampler {
     private Device device;
     package VkSampler sampler;
 
+    mixin ImplNameSetter!(device, sampler, DebugReportObjectType.Sampler);
+
     this(Device device, CreateInfo _info) {
         import std.exception : enforce;
 

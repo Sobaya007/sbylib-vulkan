@@ -74,6 +74,8 @@ class CommandBuffer {
     private CommandPool commandPool;
     private VkCommandBuffer commandBuffer;
 
+    mixin ImplNameSetter!(device, commandBuffer, DebugReportObjectType.CommandBuffer);
+
     private this(Device device, CommandPool commandPool, VkCommandBuffer commandBuffer) {
         import std.exception : enforce;
 

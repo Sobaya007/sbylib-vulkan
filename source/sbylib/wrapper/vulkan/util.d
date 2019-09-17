@@ -299,3 +299,16 @@ void compileShader(string filename) {
     const result = executeShell("glslangValidator -e main -V " ~ filename);
     assert(result.status == 0, result.output);
 }
+
+mixin template ImplNameSetter(alias device, alias obj, DebugReportObjectType type) {
+    import std : toStringz;
+
+    void name(string n) {
+        VkDebugMarkerObjectNameInfoEXT info = {
+            objectType: type,
+            object: cast(ulong)obj,
+            pObjectName: n.toStringz()
+        };
+        enforceVK(vkDebugMarkerSetObjectNameEXT(device.device, &info));
+    }
+}

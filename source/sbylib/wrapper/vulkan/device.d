@@ -2,6 +2,7 @@ module sbylib.wrapper.vulkan.device;
 
 import erupted;
 import sbylib.wrapper.vulkan.buffer;
+import sbylib.wrapper.vulkan.enums;
 import sbylib.wrapper.vulkan.physicaldevice;
 import sbylib.wrapper.vulkan.queue;
 import sbylib.wrapper.vulkan.image;
@@ -40,6 +41,8 @@ class Device {
     package VkDevice device;
     private PhysicalDevice gpu;
 
+    // mixin ImplNameSetter!(this, device, DebugReportObjectType.Device);
+
     this(PhysicalDevice gpu, DeviceCreateInfo info) {
         import std.exception : enforce;
 
@@ -60,7 +63,7 @@ class Device {
     Queue getQueue(uint graphicsQueueFamilyIndex, uint queueIndex) {
         VkQueue queue;
         vkGetDeviceQueue(device, graphicsQueueFamilyIndex, queueIndex, &queue);
-        return new Queue(queue);
+        return new Queue(this, queue);
     }
 
     VkMemoryRequirements getBufferMemoryRequirements(Buffer buffer) {

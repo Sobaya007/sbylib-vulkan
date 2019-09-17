@@ -38,6 +38,8 @@ class Swapchain {
     private Device device;
     private VkSwapchainKHR swapchain;
 
+    mixin ImplNameSetter!(device, swapchain, DebugReportObjectType.Swapchain);
+
     this(Device device, CreateInfo _info) {
         import std.exception : enforce;
 

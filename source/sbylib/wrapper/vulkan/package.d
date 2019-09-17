@@ -10,6 +10,7 @@ import sbylib.wrapper.vulkan.descriptorsetlayout;
 import sbylib.wrapper.vulkan.device;
 import sbylib.wrapper.vulkan.devicememory;
 import sbylib.wrapper.vulkan.enums;
+import sbylib.wrapper.vulkan.extensionproperties;
 import sbylib.wrapper.vulkan.fence;
 import sbylib.wrapper.vulkan.framebuffer;
 import sbylib.wrapper.vulkan.image;

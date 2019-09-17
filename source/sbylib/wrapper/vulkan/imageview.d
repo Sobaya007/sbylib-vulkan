@@ -23,6 +23,8 @@ class ImageView {
     private Device device;
     private VkImageView imageView;
 
+    mixin ImplNameSetter!(device, imageView, DebugReportObjectType.ImageView);
+
     this(Device device, CreateInfo _info) {
         import std.exception : enforce;
 

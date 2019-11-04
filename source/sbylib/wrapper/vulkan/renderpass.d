@@ -60,8 +60,6 @@ class RenderPass {
 
         invariant(resolveAttachments is null || resolveAttachments.length == colorAttachments
                 .length);
-        invariant(depthStencilAttachments is null
-                || depthStencilAttachments.length == colorAttachments.length);
 
         const mixin VkTo!(VkSubpassDescription);
     }
